@@ -9,52 +9,52 @@ using Microsoft.Maui.Hosting;
 
 namespace Microsoft.Maui.DeviceTests
 {
-	public static class Foo
-	{
-		internal static MauiAppBuilder RemapForControls(this MauiAppBuilder builder)
-		{
-			// Update the mappings for IView/View to work specifically for Controls
-			//VisualElement.RemapForControls();
-			//Label.RemapForControls();
-			//Button.RemapForControls();
-			//Window.RemapForControls();
-
-			return builder;
-		}
-
-	}
-
 	public partial class HandlerTestBase : TestBase, IDisposable
 	{
-		MauiApp _mauiApp;
+		private MauiApp _mauiApp;
+		private IMauiContext _mauiContext;
+		private bool _isCreated;
 
-		public HandlerTestBase()
+		public void EnsureHandlerCreated(Action<MauiAppBuilder> additionalCreationActions = null)
 		{
-			_mauiApp = MauiApp
+			if (_isCreated)
+			{
+				return;
+			}
+
+			_isCreated = true;
+			var appBuilder = MauiApp
 				.CreateBuilder()
-				.RemapForControls()
 				.ConfigureMauiHandlers(handlers =>
 				{
-					handlers.AddHandler(typeof(Editor), typeof(EditorHandler));
-					handlers.AddHandler(typeof(VerticalStackLayout), typeof(LayoutHandler));
-				})
-				.Build();
+					//handlers.AddHandler(typeof(Editor), typeof(EditorHandler));
+					//handlers.AddHandler(typeof(Editor), typeof(EditorHandler));
+					//handlers.AddHandler(typeof(VerticalStackLayout), typeof(LayoutHandler));
+				});
 
-			MauiContext = new ContextStub(_mauiApp.Services);
+			additionalCreationActions?.Invoke(appBuilder);
+
+			_mauiApp = appBuilder.Build();
+
+			_mauiContext = new ContextStub(_mauiApp.Services);
 		}
 
 		public void Dispose()
 		{
-			((IDisposable)_mauiApp).Dispose();
+			((IDisposable)_mauiApp)?.Dispose();
 
 			_mauiApp = null;
-			App = null;
-			MauiContext = null;
+			_mauiContext = null;
 		}
 
-		protected IApplication App { get; private set; }
-
-		protected IMauiContext MauiContext { get; private set; }
+		protected IMauiContext MauiContext
+		{
+			get
+			{
+				EnsureHandlerCreated();
+				return _mauiContext;
+			}
+		}
 
 		protected THandler CreateHandler<THandler>(IView view)
 			where THandler : IViewHandler

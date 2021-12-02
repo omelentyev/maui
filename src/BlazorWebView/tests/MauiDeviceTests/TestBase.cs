@@ -5,7 +5,7 @@ using Microsoft.Maui.TestUtils.DeviceTests.Runners;
 
 namespace Microsoft.Maui.DeviceTests
 {
-	public partial class TestBase
+	public class TestBase
 	{
 		readonly Random rnd = new Random();
 
