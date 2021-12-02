@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
 using Microsoft.AspNetCore.Components.WebView.Maui;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -31,13 +32,17 @@ namespace Microsoft.Maui.DeviceTests
 					{ "index.html", TestStaticFilesContents.DefaultMauiIndexHtmlContent },
 				},
 			};
-			bwv.RootComponents.Add(new RootComponent { ComponentType = typeof(TestComponent), Selector="#app", });
+			bwv.RootComponents.Add(new RootComponent { ComponentType = typeof(TestComponent1), Selector="#app", });
 
 			await InvokeOnMainThreadAsync(async () =>
 			{
 				var bwvHandler = CreateHandler<BlazorWebViewHandler>(bwv);
 
 				await Task.Delay(5000);
+#if WINDOWS
+				var wv2 = bwvHandler.NativeView;
+				var res = await wv2.CoreWebView2.ExecuteScriptAsync(javaScript: "document.getElementById('incrementButton').click()");
+#endif
 			});
 
 			await Task.Delay(5000);
@@ -91,17 +96,31 @@ namespace Microsoft.Maui.DeviceTests
 			}
 		}
 
-		private sealed class TestComponent : IComponent
-		{
-			public void Attach(RenderHandle renderHandle)
-			{
-				//throw new NotImplementedException();
-			}
+		//private sealed class TestComponent : IComponent
+		//{
+		//	private RenderHandle _renderHandle;
 
-			public Task SetParametersAsync(ParameterView parameters)
-			{
-				return Task.CompletedTask;
-			}
-		}
+		//	public void Attach(RenderHandle renderHandle)
+		//	{
+		//		_renderHandle = renderHandle;
+		//	}
+
+		//	public Task SetParametersAsync(ParameterView parameters)
+		//	{
+		//		parameters.SetParameterProperties(this);
+		//		this.Render();
+		//		return Task.CompletedTask;
+		//	}
+
+		//	public void Render()
+		//		=> _renderHandle.Render(RenderComponent);
+
+		//	private void RenderComponent(RenderTreeBuilder builder)
+		//	{
+		//		builder.OpenElement(0, "div");
+		//		builder.AddContent(1, "Hello World 2");
+		//		builder.CloseElement();
+		//	}
+		//}
 	}
 }

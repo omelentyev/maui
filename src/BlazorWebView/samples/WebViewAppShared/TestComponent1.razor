@@ -1,0 +1,14 @@
+﻿<div class="my-component">
+    The count is @counter. <button @onclick=DoClick id="incrementButton">Increment</button>
+</div>
+
+
+@code
+{
+    int counter;
+
+    void DoClick()
+    {
+        counter++;
+    }
+}
