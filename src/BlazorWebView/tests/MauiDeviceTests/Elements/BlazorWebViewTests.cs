@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
@@ -8,6 +9,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Maui.Controls;
 using Microsoft.Maui.Handlers;
+#if WINDOWS
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.Web.WebView2.Core;
+#endif
 using WebViewAppShared;
 using Xunit;
 
@@ -38,15 +43,93 @@ namespace Microsoft.Maui.DeviceTests
 			{
 				var bwvHandler = CreateHandler<BlazorWebViewHandler>(bwv);
 
-				await Task.Delay(5000);
+				await Task.Delay(0);
+
+				var nativeWebView = bwvHandler.NativeView;
 #if WINDOWS
-				var wv2 = bwvHandler.NativeView;
-				var res = await wv2.CoreWebView2.ExecuteScriptAsync(javaScript: "document.getElementById('incrementButton').click()");
+
+				await WaitForWebViewReady(nativeWebView);
+
+				await WaitForControlDiv(bwvHandler.NativeView, controlValueToWaitFor: "0");
+
+				var c1 = await nativeWebView.CoreWebView2.ExecuteScriptAsync(javaScript: "document.getElementById('incrementButton').click()");
+
+				await WaitForControlDiv(bwvHandler.NativeView, controlValueToWaitFor: "1");
+
+				var c2 = await nativeWebView.CoreWebView2.ExecuteScriptAsync(javaScript: "document.getElementById('incrementButton').click()");
+
+				await WaitForControlDiv(bwvHandler.NativeView, controlValueToWaitFor: "2");
+
+				var c3 = await nativeWebView.CoreWebView2.ExecuteScriptAsync(javaScript: "document.getElementById('incrementButton').click()");
+
+				await WaitForControlDiv(bwvHandler.NativeView, controlValueToWaitFor: "3");
+
+				var c4 = await nativeWebView.CoreWebView2.ExecuteScriptAsync(javaScript: "document.getElementById('incrementButton').click()");
+
+				await WaitForControlDiv(bwvHandler.NativeView, controlValueToWaitFor: "4");
 #endif
 			});
 
-			await Task.Delay(5000);
 		}
+
+#if WINDOWS
+		private async Task WaitForWebViewReady(WebView2 wv2)
+		{
+			const int MaxWaitTimes = 5;
+			const int WaitTimeInMS = 100;
+
+			CoreWebView2 coreWebView2 = null;
+			for (int i = 0; i < MaxWaitTimes; i++)
+			{
+				coreWebView2 = wv2.CoreWebView2;
+				if (coreWebView2 != null)
+				{
+					break;
+				}
+				await Task.Delay(WaitTimeInMS);
+			}
+
+			if (coreWebView2 == null)
+			{
+				throw new Exception($"Waited {MaxWaitTimes * WaitTimeInMS}ms but couldn't get CoreWebView2 to be available.");
+			}
+
+			var domLoaded = false;
+			var sem = new SemaphoreSlim(1);
+			await sem.WaitAsync();
+			wv2.CoreWebView2.DOMContentLoaded += (s, e) =>
+			{
+				domLoaded = true;
+				sem.Release();
+			};
+
+			await Task.WhenAny(Task.Delay(1000), sem.WaitAsync());
+
+			if (!domLoaded)
+			{
+				throw new Exception($"Waited {MaxWaitTimes * WaitTimeInMS}ms but couldn't get CoreWebView2.DOMContentLoaded to complete.");
+			}
+			return;
+		}
+
+		private async Task WaitForControlDiv(WebView2 webView2, string controlValueToWaitFor)
+		{
+			const int MaxWaitTimes = 5;
+			const int WaitTimeInMS = 100;
+			var quotedExpectedValue = "\"" + controlValueToWaitFor + "\"";
+			for (int i = 0; i < MaxWaitTimes; i++)
+			{
+				var controlValue = await webView2.CoreWebView2.ExecuteScriptAsync(javaScript: "document.getElementById('controlDiv').innerText");
+				if (controlValue == quotedExpectedValue)
+				{
+					return;
+				}
+				await Task.Delay(WaitTimeInMS);
+			}
+
+			throw new Exception($"Waited {MaxWaitTimes * WaitTimeInMS}ms but couldn't get controlDiv to have value '{controlValueToWaitFor}'.");
+		}
+#endif
 
 		public static class TestStaticFilesContents
 		{
@@ -56,7 +139,7 @@ namespace Microsoft.Maui.DeviceTests
 <head>
     <meta charset=""utf-8"" />
     <meta name=""viewport"" content=""width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"" />
-    <title>Blazor Desktop app</title>
+    <title>Blazor app</title>
     <base href=""/"" />
     <link href=""css/app.css"" rel=""stylesheet"" />
 </head>
@@ -95,32 +178,5 @@ namespace Microsoft.Maui.DeviceTests
 				return inMemoryFiles;
 			}
 		}
-
-		//private sealed class TestComponent : IComponent
-		//{
-		//	private RenderHandle _renderHandle;
-
-		//	public void Attach(RenderHandle renderHandle)
-		//	{
-		//		_renderHandle = renderHandle;
-		//	}
-
-		//	public Task SetParametersAsync(ParameterView parameters)
-		//	{
-		//		parameters.SetParameterProperties(this);
-		//		this.Render();
-		//		return Task.CompletedTask;
-		//	}
-
-		//	public void Render()
-		//		=> _renderHandle.Render(RenderComponent);
-
-		//	private void RenderComponent(RenderTreeBuilder builder)
-		//	{
-		//		builder.OpenElement(0, "div");
-		//		builder.AddContent(1, "Hello World 2");
-		//		builder.CloseElement();
-		//	}
-		//}
 	}
 }
