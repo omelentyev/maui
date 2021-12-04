@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UIKit;
 
-namespace Microsoft.Maui.DeviceTests
+namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 {
 	public partial class HandlerTestBase
 	{

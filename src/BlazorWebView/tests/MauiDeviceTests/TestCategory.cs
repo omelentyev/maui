@@ -1,4 +1,4 @@
-﻿namespace Microsoft.Maui.DeviceTests
+﻿namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 {
 	public static class TestCategory
 	{

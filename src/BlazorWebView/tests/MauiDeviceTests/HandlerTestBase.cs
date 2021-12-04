@@ -7,7 +7,7 @@ using Microsoft.Maui.Graphics;
 using Microsoft.Maui.Handlers;
 using Microsoft.Maui.Hosting;
 
-namespace Microsoft.Maui.DeviceTests
+namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 {
 	public partial class HandlerTestBase : TestBase, IDisposable
 	{

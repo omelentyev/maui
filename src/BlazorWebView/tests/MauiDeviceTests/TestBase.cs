@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Maui.Dispatching;
 using Microsoft.Maui.TestUtils.DeviceTests.Runners;
 
-namespace Microsoft.Maui.DeviceTests
+namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 {
 	public class TestBase
 	{
