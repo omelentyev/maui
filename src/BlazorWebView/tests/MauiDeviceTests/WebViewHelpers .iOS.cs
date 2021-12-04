@@ -13,7 +13,7 @@ namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 			const int WaitTimeInMS = 200;
 			for (int i = 0; i < MaxWaitTimes; i++)
 			{
-				var blazorObject = await ExecuteScriptAsync(webview, "window.Blazor !== null");
+				var blazorObject = await ExecuteScriptAsync(webview, "(window.Blazor !== null).toString()");
 				if (blazorObject == "true")
 				{
 					//Log.Warn("eilon", $"FOUND BLAZOBJ: {blazorObject}");
