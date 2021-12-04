@@ -41,7 +41,7 @@ namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 			var quotedExpectedValue = "\"" + controlValueToWaitFor + "\"";
 			for (int i = 0; i < MaxWaitTimes; i++)
 			{
-				var controlValue = await ExecuteScriptAsync(webView, "document.getElementById('controlDiv').innerText");
+				var controlValue = await ExecuteScriptAsync(webView, "(document.getElementById('controlDiv') === null) ? null : document.getElementById('controlDiv').innerText");
 				if (controlValue == quotedExpectedValue)
 				{
 					return;
