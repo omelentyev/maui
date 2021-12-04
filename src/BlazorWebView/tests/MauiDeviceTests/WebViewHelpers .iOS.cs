@@ -23,7 +23,9 @@ namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 				await Task.Delay(WaitTimeInMS);
 			}
 
-			throw new Exception($"Waited {MaxWaitTimes * WaitTimeInMS}ms but couldn't get window.Blazor to be non-null.");
+			var blazorObject2 = await ExecuteScriptAsync(webview, "window.Blazor === null ? 'IT IS NULL' : window.Blazor.toString()");
+
+			throw new Exception($"Waited {MaxWaitTimes * WaitTimeInMS}ms but couldn't get window.Blazor to be non-null. IsLoading={webview.IsLoading}, EstimatedProgress={webview.EstimatedProgress}, blazorObject2={blazorObject2}");
 		}
 
 		public static async Task<string> ExecuteScriptAsync(WKWebView webview, string script)
