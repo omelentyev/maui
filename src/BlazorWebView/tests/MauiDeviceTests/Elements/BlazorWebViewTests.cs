@@ -14,10 +14,10 @@ using Xunit;
 namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests.Elements
 {
 	[Category(TestCategory.BlazorWebView)]
-	public partial class BlazorWebViewTests : HandlerTestBase
+	public class BlazorWebViewTests : HandlerTestBase
 	{
 		[Fact]
-		public async Task BlazorPassing()
+		public async Task BasicBlazorComponentClick()
 		{
 			EnsureHandlerCreated(additionalCreationActions: appBuilder =>
 			{
