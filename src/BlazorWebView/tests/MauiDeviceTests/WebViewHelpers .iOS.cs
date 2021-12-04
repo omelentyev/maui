@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Android.Util;
-using Android.Webkit;
-using AWebView = Android.Webkit.WebView;
+using WebKit;
 
 namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 {
 	public static class WebViewHelpers
 	{
-		public static async Task WaitForWebViewReady(AWebView webview)
+		public static async Task WaitForWebViewReady(WKWebView webview)
 		{
 			const int MaxWaitTimes = 10;
 			const int WaitTimeInMS = 200;
@@ -18,24 +16,23 @@ namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 				var blazorObject = await ExecuteScriptAsync(webview, "window.Blazor !== null");
 				if (blazorObject == "true")
 				{
-					Log.Warn("eilon", $"FOUND BLAZOBJ: {blazorObject}");
+					//Log.Warn("eilon", $"FOUND BLAZOBJ: {blazorObject}");
 					return;
 				}
-				Log.Warn("blazorwebview", $"window.Blazor not found, waiting {WaitTimeInMS}ms...");
+				//Log.Warn("blazorwebview", $"window.Blazor not found, waiting {WaitTimeInMS}ms...");
 				await Task.Delay(WaitTimeInMS);
 			}
 
 			throw new Exception($"Waited {MaxWaitTimes * WaitTimeInMS}ms but couldn't get window.Blazor to be non-null.");
 		}
 
-		public static Task<string> ExecuteScriptAsync(AWebView webview, string script)
+		public static async Task<string> ExecuteScriptAsync(WKWebView webview, string script)
 		{
-			var jsResult = new JavascriptResult();
-			webview.EvaluateJavascript(script, jsResult);
-			return jsResult.JsResult;
+			var nsStringResult = await webview.EvaluateJavaScriptAsync(script);
+			return nsStringResult?.ToString();
 		}
 
-		public static async Task WaitForControlDiv(AWebView webView, string controlValueToWaitFor)
+		public static async Task WaitForControlDiv(WKWebView webView, string controlValueToWaitFor)
 		{
 			const int MaxWaitTimes = 10;
 			const int WaitTimeInMS = 200;
@@ -51,23 +48,6 @@ namespace Microsoft.Maui.MauiBlazorWebView.DeviceTests
 			}
 
 			throw new Exception($"Waited {MaxWaitTimes * WaitTimeInMS}ms but couldn't get controlDiv to have value '{controlValueToWaitFor}'.");
-		}
-
-		class JavascriptResult : Java.Lang.Object, IValueCallback
-		{
-			TaskCompletionSource<string> source;
-			public Task<string> JsResult { get { return source.Task; } }
-
-			public JavascriptResult()
-			{
-				source = new TaskCompletionSource<string>();
-			}
-
-			public void OnReceiveValue(Java.Lang.Object result)
-			{
-				string json = ((Java.Lang.String)result).ToString();
-				source.SetResult(json);
-			}
 		}
 	}
 }
